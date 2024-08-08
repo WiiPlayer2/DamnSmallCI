@@ -22,4 +22,43 @@ public class PipelineParserTest
         // Assert
         result.Case.Should().BeEquivalentTo(expected);
     }
+
+    [TestMethod]
+    public void Parse_WithTask_ReturnsPipelineWithTask()
+    {
+        // Arrange
+        var schema = YamlNode.MapNode(Map(
+            ("tasks", YamlNode.MapNode(Map(
+                ("test-task", YamlNode.MapNode(Map<string, YamlNode>())))))));
+        var expected = new PipelineInfo(List(
+            new TaskInfo(TaskName.From("test-task"), List<Step>())));
+
+        // Act
+        var result = PipelineParser.Parse(schema);
+
+        // Assert
+        result.Case.Should().BeEquivalentTo(expected);
+    }
+
+    [TestMethod]
+    public void Parse_WithTaskWithSteps_ReturnsPipelineWithTaskWithSteps()
+    {
+        // Arrange
+        var schema = YamlNode.MapNode(Map(
+            ("tasks", YamlNode.MapNode(Map(
+                ("test-task", YamlNode.MapNode(Map(
+                    ("steps", YamlNode.ListNode(List(
+                        YamlNode.StringNode("echo hi"))))))))))));
+        var expected = new PipelineInfo(List(
+            new TaskInfo(
+                TaskName.From("test-task"),
+                List(
+                    Step.From("echo hi")))));
+
+        // Act
+        var result = PipelineParser.Parse(schema);
+
+        // Assert
+        result.Case.Should().BeEquivalentTo(expected);
+    }
 }

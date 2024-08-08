@@ -2,7 +2,4 @@ using LanguageExt;
 
 namespace DamnSmallCI.Domain.Schema;
 
-public enum YamlError
-{
-    
-}
+public record YamlError(YamlNode Node, string Error);
