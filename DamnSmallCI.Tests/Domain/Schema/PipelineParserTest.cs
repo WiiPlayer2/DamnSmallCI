@@ -13,7 +13,7 @@ public class PipelineParserTest
     public void Parse_WithEmptySchema_ReturnsEmptyPipeline()
     {
         // Arrange
-        var schema = Mock.Of<IYamlNode>(x => x[It.IsAny<string>()] == OptionUnsafe<IYamlNode?>.None);
+        var schema = YamlNode.MapNode(Map<string, YamlNode>());
         var expected = new PipelineInfo(List<TaskInfo>());
 
         // Act
