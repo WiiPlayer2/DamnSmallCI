@@ -11,4 +11,9 @@
     <ProjectReference Include="../DamnSmallCI.Application/DamnSmallCI.Application.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="LanguageExt.Sys" Version="4.4.9" />
+    <PackageReference Include="System.CommandLine.Hosting" Version="0.4.0-alpha.22272.1" />
+  </ItemGroup>
+
 </Project>
