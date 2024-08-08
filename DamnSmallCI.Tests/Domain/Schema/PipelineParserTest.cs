@@ -1,8 +1,6 @@
 using DamnSmallCI.Domain;
 using DamnSmallCI.Domain.Schema;
 using FluentAssertions;
-using LanguageExt;
-using Moq;
 
 namespace DamnSmallCI.Tests.Domain.Schema;
 
@@ -13,7 +11,7 @@ public class PipelineParserTest
     public void Parse_WithEmptySchema_ReturnsEmptyPipeline()
     {
         // Arrange
-        var schema = YamlNode.MapNode(Map<string, YamlNode>());
+        var schema = YamlNode.Null();
         var expected = new PipelineInfo(List<TaskInfo>());
 
         // Act

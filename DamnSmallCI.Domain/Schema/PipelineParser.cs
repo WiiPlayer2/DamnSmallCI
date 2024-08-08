@@ -3,7 +3,7 @@ namespace DamnSmallCI.Domain.Schema;
 public class PipelineParser
 {
     public static Validation<YamlError, PipelineInfo> Parse(YamlNode schema) =>
-        from root in AsMap(schema)
+        from root in AsOptional(schema).Map(AsMap).IfNone(Map<string, YamlNode>())
         from tasks in root.Find("tasks").Match(
             ParseTasks,
             () => Success<YamlError, Lst<TaskInfo>>(List<TaskInfo>()))
@@ -12,16 +12,24 @@ public class PipelineParser
     private static Validation<YamlError, Lst<YamlNode>> AsList(YamlNode node) => node.Match(
         x => x.List,
         x => Fail<Lst<YamlNode>>(node, "Expected list, got map"),
+        _ => Fail<Lst<YamlNode>>(node, "Expected list, got null"),
         x => Fail<Lst<YamlNode>>(node, "Expected list, got string"));
 
     private static Validation<YamlError, Map<string, YamlNode>> AsMap(YamlNode node) => node.Match(
         x => Fail<Map<string, YamlNode>>(node, "Expected map, got list"),
         x => x.Map,
+        _ => Fail<Map<string, YamlNode>>(node, "Expected map, got null"),
         x => Fail<Map<string, YamlNode>>(node, "Expected map, got string"));
+
+    private static Option<YamlNode> AsOptional(YamlNode node) =>
+        node is YamlNode.Null_
+            ? None
+            : Some(node);
 
     private static Validation<YamlError, string> AsString(YamlNode node) => node.Match(
         x => Fail<string>(node, "Expected string, got list"),
         x => Fail<string>(node, "Expected string, got map"),
+        _ => Fail<string>(node, "Expected string, got null"),
         x => x.Value);
 
     private static Validation<YamlError, T> Fail<T>(YamlNode node, string message) =>
