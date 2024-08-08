@@ -1,4 +1,5 @@
 using System.CommandLine.Invocation;
+using DamnSmallCI.Application;
 using LanguageExt;
 using LanguageExt.Effects.Traits;
 using LanguageExt.Sys.Live;
@@ -7,7 +8,7 @@ using static LanguageExt.Prelude;
 
 namespace DamnSmallCI.Cli.Commands.Handlers;
 
-internal class RunCommandHandler(ILogger<RunCommand> logger) : ICommandHandler
+internal class RunCommandHandler(ILogger<RunCommand> logger, RunUseCase<Runtime> runUseCase) : ICommandHandler
 {
     public int Invoke(InvocationContext context) => throw new NotImplementedException();
 
@@ -15,7 +16,7 @@ internal class RunCommandHandler(ILogger<RunCommand> logger) : ICommandHandler
     {
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(context.GetCancellationToken());
         var runtime = Runtime.New(cts);
-        return await AffMaybe((Runtime rt) => InvokeAff<Runtime>(context).Run(rt))
+        return await AffMaybe((Runtime rt) => InvokeAff(context, runUseCase).Run(rt))
             .Run(runtime)
             .Map(x => x.Match(
                 _ => 0,
@@ -26,5 +27,9 @@ internal class RunCommandHandler(ILogger<RunCommand> logger) : ICommandHandler
                 }));
     }
 
-    private Aff<RT, Unit> InvokeAff<RT>(InvocationContext context) where RT : struct, HasCancel<RT> => throw new NotImplementedException();
+    private Aff<RT, Unit> InvokeAff<RT>(InvocationContext context, RunUseCase<RT> runUseCase) where RT : struct, HasCancel<RT> =>
+        from pipelineFile in Eff(() => context.ParseResult.GetValueForArgument(Arguments.PipelineFile))
+        from _ in runUseCase.Run(pipelineFile)
+        select unit;
+
 }
