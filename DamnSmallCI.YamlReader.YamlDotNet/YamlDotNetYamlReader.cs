@@ -19,7 +19,7 @@ public class YamlDotNetYamlReader : IYamlReader
         select node;
 
     private static YamlNode MapMappingNode(YamlMappingNode mapping) =>
-        YamlNode.MapNode(mapping.Children
+        YamlNode.Map(mapping.Children
             .Select(t => ((t.Key as YamlScalarNode)?.Value ?? string.Empty, MapNode(t.Value)))
             .ToMap());
 
@@ -36,9 +36,9 @@ public class YamlDotNetYamlReader : IYamlReader
             };
 
     private static YamlNode MapScalarNode(YamlScalarNode scalar) =>
-        YamlNode.StringNode(scalar.Value);
+        YamlNode.String(scalar.Value);
 
     private static YamlNode MapSequenceNode(YamlSequenceNode sequence) =>
-        YamlNode.ListNode(toList(sequence.Children
+        YamlNode.List(toList(sequence.Children
             .Select(MapNode)));
 }

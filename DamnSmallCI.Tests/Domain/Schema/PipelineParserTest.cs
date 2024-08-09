@@ -25,9 +25,9 @@ public class PipelineParserTest
     public void Parse_WithTask_ReturnsPipelineWithTask()
     {
         // Arrange
-        var schema = YamlNode.MapNode(Map(
-            ("tasks", YamlNode.MapNode(Map(
-                ("test-task", YamlNode.MapNode(Map<string, YamlNode>())))))));
+        var schema = YamlNode.Map(Map(
+            ("tasks", YamlNode.Map(Map(
+                ("test-task", YamlNode.Map(Map<string, YamlNode>())))))));
         var expected = new PipelineInfo(List(
             new TaskInfo(TaskName.From("test-task"), List<Step>())));
 
@@ -42,11 +42,11 @@ public class PipelineParserTest
     public void Parse_WithTaskWithSteps_ReturnsPipelineWithTaskWithSteps()
     {
         // Arrange
-        var schema = YamlNode.MapNode(Map(
-            ("tasks", YamlNode.MapNode(Map(
-                ("test-task", YamlNode.MapNode(Map(
-                    ("steps", YamlNode.ListNode(List(
-                        YamlNode.StringNode("echo hi"))))))))))));
+        var schema = YamlNode.Map(Map(
+            ("tasks", YamlNode.Map(Map(
+                ("test-task", YamlNode.Map(Map(
+                    ("steps", YamlNode.List(List(
+                        YamlNode.String("echo hi"))))))))))));
         var expected = new PipelineInfo(List(
             new TaskInfo(
                 TaskName.From("test-task"),

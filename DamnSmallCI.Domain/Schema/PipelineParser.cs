@@ -10,14 +10,14 @@ public class PipelineParser
         select new PipelineInfo(tasks);
 
     private static Validation<YamlError, Lst<YamlNode>> AsList(YamlNode node) => node.Match(
-        x => x.List,
+        x => x.Value,
         x => Fail<Lst<YamlNode>>(node, "Expected list, got map"),
         _ => Fail<Lst<YamlNode>>(node, "Expected list, got null"),
         x => Fail<Lst<YamlNode>>(node, "Expected list, got string"));
 
     private static Validation<YamlError, Map<string, YamlNode>> AsMap(YamlNode node) => node.Match(
         x => Fail<Map<string, YamlNode>>(node, "Expected map, got list"),
-        x => x.Map,
+        x => x.Value,
         _ => Fail<Map<string, YamlNode>>(node, "Expected map, got null"),
         x => Fail<Map<string, YamlNode>>(node, "Expected map, got string"));
 

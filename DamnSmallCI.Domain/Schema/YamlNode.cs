@@ -5,11 +5,11 @@ namespace DamnSmallCI.Domain.Schema;
 [UnionType]
 public abstract partial record YamlNode
 {
-    public record ListNode_(Lst<YamlNode> List) : YamlNode;
+    public record List_(Lst<YamlNode> Value) : YamlNode;
 
-    public record MapNode_(Map<string, YamlNode> Map) : YamlNode;
+    public record Map_(Map<string, YamlNode> Value) : YamlNode;
 
     public record Null_ : YamlNode;
 
-    public record StringNode_(string Value) : YamlNode;
+    public record String_(string Value) : YamlNode;
 }
