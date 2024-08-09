@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# 
+#
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DamnSmallCI.Cli", "DamnSmallCI.Cli\DamnSmallCI.Cli.csproj", "{5925CB11-8DCA-471E-9673-1E4126C2D0B9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DamnSmallCI.Application.Abstractions", "DamnSmallCI.Application.Abstractions\DamnSmallCI.Application.Abstractions.csproj", "{26BFAE38-2FD2-4EEC-AC40-ECF823C64A36}"
@@ -20,6 +20,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "50-Testing", "50-Testing", "{18317733-4732-42F6-83D4-F27C5DADF423}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DamnSmallCI.Tests", "DamnSmallCI.Tests\DamnSmallCI.Tests.csproj", "{4E068E3D-72B5-43A5-B2DA-F0D49654D336}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DamnSmallCI.YamlReader.YamlDotNet", "DamnSmallCI.YamlReader.YamlDotNet\DamnSmallCI.YamlReader.YamlDotNet.csproj", "{59C96310-A5C4-49EC-BA98-CC46A1A807C2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -47,6 +49,10 @@ Global
 		{4E068E3D-72B5-43A5-B2DA-F0D49654D336}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4E068E3D-72B5-43A5-B2DA-F0D49654D336}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4E068E3D-72B5-43A5-B2DA-F0D49654D336}.Release|Any CPU.Build.0 = Release|Any CPU
+		{59C96310-A5C4-49EC-BA98-CC46A1A807C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{59C96310-A5C4-49EC-BA98-CC46A1A807C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{59C96310-A5C4-49EC-BA98-CC46A1A807C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{59C96310-A5C4-49EC-BA98-CC46A1A807C2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{F9468D58-FB2C-4159-8194-62F94011B387} = {6AB724F5-DC67-42E2-BD80-6A0C57084C23}
@@ -54,5 +60,6 @@ Global
 		{5925CB11-8DCA-471E-9673-1E4126C2D0B9} = {DE9C20CF-9EE7-4B3C-A3AF-440FAC367CEE}
 		{0AE670A6-7056-45CE-B1A6-3FDE88FD013F} = {E73836F9-4497-4725-9DBC-C5307D81A335}
 		{4E068E3D-72B5-43A5-B2DA-F0D49654D336} = {18317733-4732-42F6-83D4-F27C5DADF423}
+		{59C96310-A5C4-49EC-BA98-CC46A1A807C2} = {A34B81D7-7319-4682-9C3B-9ACA66B0B73F}
 	EndGlobalSection
 EndGlobal
