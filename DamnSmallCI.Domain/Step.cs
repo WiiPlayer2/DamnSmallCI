@@ -13,3 +13,6 @@ public partial record struct TaskOutput;
 
 [ValueObject<string>]
 public partial record struct PipelineOutput;
+
+[ValueObject<string>]
+public partial record struct ImageName;

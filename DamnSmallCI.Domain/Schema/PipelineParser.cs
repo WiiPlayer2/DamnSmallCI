@@ -51,10 +51,13 @@ public class PipelineParser
         from name in map.Find("name")
             .ToValidation(new YamlError(taskSchema, "Expected property \"name\""))
             .Bind(AsString)
+        from imageName in map.Find("image")
+            .Map(AsString)
+            .Traverse(ImageName.From)
         from steps in map.Find("steps").Match(
             ParseSteps,
             () => List<Step>())
-        select new TaskInfo(TaskName.From(name), steps);
+        select new TaskInfo(TaskName.From(name), imageName, steps);
 
     private static Validation<YamlError, Lst<TaskInfo>> ParseTasks(YamlNode tasksSchema) =>
         from list in AsList(tasksSchema)

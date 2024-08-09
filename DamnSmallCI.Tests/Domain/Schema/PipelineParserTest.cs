@@ -30,13 +30,39 @@ public class PipelineParserTest
                 YamlNode.Map(Map(
                     ("name", YamlNode.String("test-task")))))))));
         var expected = new PipelineInfo(List(
-            new TaskInfo(TaskName.From("test-task"), List<Step>())));
+            new TaskInfo(
+                TaskName.From("test-task"),
+                None,
+                List<Step>())));
 
         // Act
         var result = PipelineParser.Parse(schema);
 
         // Assert
         result.Case.Should().Be(expected);
+    }
+
+    [TestMethod]
+    public void Parse_WithTaskWithImage_ReturnsPipelineWithTaskWithImage()
+    {
+        // Arrange
+        var schema = YamlNode.Map(Map(
+            ("tasks", YamlNode.List(List(
+                YamlNode.Map(Map(
+                    ("name", YamlNode.String("test-task")),
+                    ("image", YamlNode.String("test-image"))
+                )))
+            ))));
+        var expected = new PipelineInfo(List(
+            new TaskInfo(
+                TaskName.From("test-task"),
+                Some(ImageName.From("test-image")),
+                List<Step>())));
+
+        // Act
+
+
+        // Assert
     }
 
     [TestMethod]
@@ -52,6 +78,7 @@ public class PipelineParserTest
         var expected = new PipelineInfo(List(
             new TaskInfo(
                 TaskName.From("test-task"),
+                None,
                 List(
                     Step.From("echo hi")))));
 
