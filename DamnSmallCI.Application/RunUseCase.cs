@@ -1,3 +1,4 @@
+using DamnSmallCI.Domain;
 using DamnSmallCI.Domain.Schema;
 using LanguageExt.Common;
 using LanguageExt.Effects.Traits;
@@ -10,6 +11,7 @@ public class RunUseCase<RT>(IYamlReader yamlReader, PipelineRunner<RT> pipelineR
         from fileContent in Aff((RT rt) => File.ReadAllTextAsync(pipelineFile.FullName).ToValue())
         from pipelineYaml in yamlReader.Read(fileContent)
         from pipeline in PipelineParser.Parse(pipelineYaml).ToEff(errors => Error.Many(errors.Select(x => Error.New($"{x.Error}"))))
-        from _10 in pipelineRunner.Run(pipeline)
+        let outputProgress = new Progress<PipelineOutput>(x => Console.WriteLine(x))
+        from _10 in pipelineRunner.Run(outputProgress, pipeline)
         select unit;
 }

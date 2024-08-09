@@ -1,17 +1,16 @@
 using DamnSmallCI.Domain;
 using LanguageExt.Effects.Traits;
-using Microsoft.Extensions.Logging;
 
 namespace DamnSmallCI.Application;
 
-public class PipelineRunner<RT>(ILogger<PipelineRunner<RT>> logger, TaskRunner<RT> taskRunner) where RT : struct, HasCancel<RT>
+public class PipelineRunner<RT>(TaskRunner<RT> taskRunner) where RT : struct, HasCancel<RT>
 {
-    public Aff<RT, Unit> Run(PipelineInfo pipeline) =>
-        from outputProgress in SuccessEff(new Progress<TaskOutput>(x => logger.LogInformation(x.Value)))
-        from _05 in Eff(fun(() => logger.LogInformation("====== [PIPELINE START] ======")))
+    public Aff<RT, Unit> Run(IProgress<PipelineOutput> outputProgress, PipelineInfo pipeline) =>
+        from taskOutput in SuccessEff(new Progress<TaskOutput>(x => outputProgress.Report(PipelineOutput.From(x.Value))))
+        from _05 in Eff(fun(() => outputProgress.Report(PipelineOutput.From("====== [PIPELINE START] ======"))))
         from _10 in pipeline.Tasks
-            .Select(x => taskRunner.Run(outputProgress, x))
+            .Select(x => taskRunner.Run(taskOutput, x))
             .TraverseSerial(identity)
-        from _20 in Eff(fun(() => logger.LogInformation("====== [PIPELINE END] ======")))
+        from _20 in Eff(fun(() => outputProgress.Report(PipelineOutput.From("====== [PIPELINE END] ======"))))
         select unit;
 }
