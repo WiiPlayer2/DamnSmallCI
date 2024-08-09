@@ -18,7 +18,7 @@ public class PipelineParserTest
         var result = PipelineParser.Parse(schema);
 
         // Assert
-        result.Case.Should().BeEquivalentTo(expected);
+        result.Case.Should().Be(expected);
     }
 
     [TestMethod]
@@ -26,8 +26,9 @@ public class PipelineParserTest
     {
         // Arrange
         var schema = YamlNode.Map(Map(
-            ("tasks", YamlNode.Map(Map(
-                ("test-task", YamlNode.Map(Map<string, YamlNode>())))))));
+            ("tasks", YamlNode.List(List(
+                YamlNode.Map(Map(
+                    ("name", YamlNode.String("test-task")))))))));
         var expected = new PipelineInfo(List(
             new TaskInfo(TaskName.From("test-task"), List<Step>())));
 
@@ -35,7 +36,7 @@ public class PipelineParserTest
         var result = PipelineParser.Parse(schema);
 
         // Assert
-        result.Case.Should().BeEquivalentTo(expected);
+        result.Case.Should().Be(expected);
     }
 
     [TestMethod]
@@ -43,10 +44,11 @@ public class PipelineParserTest
     {
         // Arrange
         var schema = YamlNode.Map(Map(
-            ("tasks", YamlNode.Map(Map(
-                ("test-task", YamlNode.Map(Map(
+            ("tasks", YamlNode.List(List(
+                YamlNode.Map(Map(
+                    ("name", YamlNode.String("test-task")),
                     ("steps", YamlNode.List(List(
-                        YamlNode.String("echo hi"))))))))))));
+                        YamlNode.String("echo hi")))))))))));
         var expected = new PipelineInfo(List(
             new TaskInfo(
                 TaskName.From("test-task"),
@@ -57,6 +59,6 @@ public class PipelineParserTest
         var result = PipelineParser.Parse(schema);
 
         // Assert
-        result.Case.Should().BeEquivalentTo(expected);
+        result.Case.Should().Be(expected);
     }
 }

@@ -46,19 +46,20 @@ public class PipelineParser
             .Traverse(identity)
         select steps;
 
-    private static Validation<YamlError, TaskInfo> ParseTask(string name, YamlNode taskSchema) =>
+    private static Validation<YamlError, TaskInfo> ParseTask(YamlNode taskSchema) =>
         from map in AsMap(taskSchema)
+        from name in map.Find("name")
+            .ToValidation(new YamlError(taskSchema, "Expected property \"name\""))
+            .Bind(AsString)
         from steps in map.Find("steps").Match(
             ParseSteps,
             () => List<Step>())
         select new TaskInfo(TaskName.From(name), steps);
 
     private static Validation<YamlError, Lst<TaskInfo>> ParseTasks(YamlNode tasksSchema) =>
-        from list in AsMap(tasksSchema)
+        from list in AsList(tasksSchema)
         from tasks in list
-            .Pairs
-            .Select(kv => ParseTask(kv.Key, kv.Value))
+            .Select(ParseTask)
             .Traverse(identity)
-            .Map(toList)
         select tasks;
 }
