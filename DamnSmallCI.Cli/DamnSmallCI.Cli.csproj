@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../DamnSmallCI.Application/DamnSmallCI.Application.csproj" />
+    <ProjectReference Include="..\DamnSmallCI.StepRunner.Shell\DamnSmallCI.StepRunner.Shell.csproj"/>
     <ProjectReference Include="..\DamnSmallCI.YamlReader.YamlDotNet\DamnSmallCI.YamlReader.YamlDotNet.csproj"/>
   </ItemGroup>
 

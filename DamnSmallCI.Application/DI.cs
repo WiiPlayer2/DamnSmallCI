@@ -10,5 +10,6 @@ public static class DI
     {
         services.AddTransient<RunUseCase<RT>>();
         services.AddTransient<PipelineRunner<RT>>();
+        services.AddTransient<TaskRunner<RT>>();
     }
 }
