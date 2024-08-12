@@ -29,7 +29,6 @@ internal class RunCommandHandler(ILogger<RunCommand> logger, RunUseCase<Runtime>
 
     private Aff<RT, Unit> InvokeAff<RT>(InvocationContext context, RunUseCase<RT> runUseCase) where RT : struct, HasCancel<RT> =>
         from pipelineFile in Eff(() => context.ParseResult.GetValueForArgument(Arguments.PipelineFile))
-        from _ in runUseCase.Run(pipelineFile)
+        from _ in runUseCase.Run(pipelineFile.Directory, pipelineFile)
         select unit;
-
 }
