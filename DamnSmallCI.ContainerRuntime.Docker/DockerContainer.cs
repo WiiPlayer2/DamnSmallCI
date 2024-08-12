@@ -27,12 +27,15 @@ internal class DockerContainer<RT>(DockerClient client, string containerId) : IC
         from inputBuffer in Eff(() => Encoding.UTF8.GetBytes(step.Value + "\n"))
         from _10 in Aff((RT rt) => streams.WriteAsync(inputBuffer, 0, inputBuffer.Length, rt.CancellationToken).ToUnit().ToValue())
         from _15 in Eff(fun(streams.CloseWrite))
-        from outputTexts in Aff((RT rt) => streams.ReadOutputToEndAsync(rt.CancellationToken).ToValue())
-        from _20 in string.IsNullOrEmpty(outputTexts.stdout)
-            ? unitEff
-            : Eff(fun(() => outputProgress.Report(StepOutput.From(outputTexts.stdout.TrimEnd('\n')))))
-        from _30 in string.IsNullOrEmpty(outputTexts.stderr)
-            ? unitEff
-            : Eff(fun(() => outputProgress.Report(StepOutput.From(outputTexts.stderr.TrimEnd('\n')))))
+        let readBuffer = new byte[1024]
+        from _20 in repeatUntil(
+            from readResult in Aff((RT rt) => streams.ReadOutputAsync(readBuffer, 0, readBuffer.Length, rt.CancellationToken).ToValue())
+            from text in Eff(() => Encoding.UTF8.GetString(readBuffer, 0, readResult.Count))
+            from _10 in string.IsNullOrEmpty(text)
+                ? unitEff
+                : Eff(fun(() => outputProgress.Report(StepOutput.From(text))))
+            select readResult.EOF,
+            identity
+        )
         select unit;
 }
