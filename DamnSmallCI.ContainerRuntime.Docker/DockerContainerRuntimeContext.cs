@@ -38,7 +38,7 @@ internal class DockerContainerRuntimeContext<RT>(DockerClient client, VolumeResp
         select unit;
 
     public Aff<RT, IContainer<RT>> NewContainer(ImageName image) =>
-        from container in Aff((RT rt) => client.Containers.CreateContainerAsync(new CreateContainerParameters() // TODO dispose container when done
+        from container in Aff((RT rt) => client.Containers.CreateContainerAsync(new CreateContainerParameters
         {
             Image = image.Value,
             WorkingDir = "/src",
