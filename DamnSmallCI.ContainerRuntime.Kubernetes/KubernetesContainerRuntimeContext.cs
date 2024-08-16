@@ -85,5 +85,50 @@ internal class KubernetesContainerRuntimeContext<RT>(k8s.Kubernetes kubernetes, 
         from _30 in Aff((RT rt) => client.DeleteAsync<V1Pod>(createdPod.Name(), createdPod.Namespace(), rt.CancellationToken).ToUnit().ToValue())
         select unit;
 
-    public Aff<RT, IContainer<RT>> NewContainer(ImageName image) => throw new NotImplementedException();
+    public Aff<RT, IContainer<RT>> NewContainer(ImageName image) =>
+        from pod in SuccessEff(new V1Pod
+        {
+            Metadata = new V1ObjectMeta
+            {
+                Name = $"{pvc.Name()}-{Guid.NewGuid()}",
+                NamespaceProperty = pvc.Namespace(),
+            },
+            Spec = new V1PodSpec
+            {
+                Volumes =
+                [
+                    new V1Volume
+                    {
+                        Name = "source",
+                        PersistentVolumeClaim = new V1PersistentVolumeClaimVolumeSource
+                        {
+                            ClaimName = pvc.Name(),
+                        },
+                    },
+                ],
+                Containers =
+                [
+                    new V1Container
+                    {
+                        Name = "task",
+                        Image = image.Value,
+                        WorkingDir = "/src",
+                        Tty = true,
+                        Stdin = true,
+                        VolumeMounts =
+                        [
+                            new V1VolumeMount
+                            {
+                                Name = "source",
+                                MountPath = "/src",
+                            },
+                        ],
+                    },
+                ],
+            },
+        })
+        from createdPod in Aff((RT rt) => client.CreateAsync(pod, rt.CancellationToken).ToValue())
+        from _10 in Aff((RT rt) => client.WatchAsync<V1Pod>(createdPod.Namespace(), cancellationToken: rt.CancellationToken)
+            .FirstAsync(x => x.Type == WatchEventType.Modified && x.Entity.Status.Phase == "Running"))
+        select (IContainer<RT>) new KubernetesContainer<RT>(kubernetes, client, createdPod);
 }
