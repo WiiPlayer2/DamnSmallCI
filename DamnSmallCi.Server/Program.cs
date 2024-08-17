@@ -3,6 +3,8 @@ using DamnSmallCI.Application;
 using DamnSmallCI.ContainerRuntime.Kubernetes;
 using DamnSmallCI.Server.Application;
 using DamnSmallCI.Server.Domain;
+using DamnSmallCI.Server.RepositoryManager.GitCli;
+using DamnSmallCI.Server.RepositoryResolver.Direct;
 using DamnSmallCI.StepRunner.Shell;
 using DamnSmallCI.YamlReader.YamlDotNet;
 using LanguageExt;
@@ -22,6 +24,8 @@ builder.Services.AddApplicationServices<Runtime>();
 builder.Services.AddYamlDotNetYamlReader();
 builder.Services.AddKubernetesContainerRuntime<Runtime>();
 builder.Services.AddShellStepRunner<Runtime>();
+builder.Services.AddDirectRepositoryResolver<Runtime>();
+builder.Services.AddGitCliRepositoryManager<Runtime>();
 
 var app = builder.Build();
 

@@ -4,7 +4,10 @@ using Vogen;
 namespace DamnSmallCI.Server.Application;
 
 [ValueObject<string>]
-public partial record struct RepositoryResolverName;
+public partial record struct RepositoryResolverName
+{
+    private static string NormalizeInput(string input) => input.ToLowerInvariant();
+}
 
 [ValueObject<JsonObject>]
 public partial record struct RepositoryResolverWebhookBody;

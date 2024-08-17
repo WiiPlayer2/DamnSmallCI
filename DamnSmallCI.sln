@@ -37,6 +37,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DamnSmallCI.Server.Applicat
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DamnSmallCI.Server.Domain", "DamnSmallCI.Server.Domain\DamnSmallCI.Server.Domain.csproj", "{438F35B7-0C76-4EF3-9DB9-FC7D18BBC70C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DamnSmallCI.Server.RepositoryResolver.Direct", "DamnSmallCI.Server.RepositoryResolver.Direct\DamnSmallCI.Server.RepositoryResolver.Direct.csproj", "{DACB39A1-E014-4508-9347-18B367DD3C53}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DamnSmallCI.Server.RepositoryManager.GitCli", "DamnSmallCI.Server.RepositoryManager.GitCli\DamnSmallCI.Server.RepositoryManager.GitCli.csproj", "{3C7E5578-8BE5-4567-AE2B-EECF370D2080}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -95,6 +99,14 @@ Global
 		{438F35B7-0C76-4EF3-9DB9-FC7D18BBC70C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{438F35B7-0C76-4EF3-9DB9-FC7D18BBC70C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{438F35B7-0C76-4EF3-9DB9-FC7D18BBC70C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DACB39A1-E014-4508-9347-18B367DD3C53}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DACB39A1-E014-4508-9347-18B367DD3C53}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DACB39A1-E014-4508-9347-18B367DD3C53}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DACB39A1-E014-4508-9347-18B367DD3C53}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C7E5578-8BE5-4567-AE2B-EECF370D2080}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C7E5578-8BE5-4567-AE2B-EECF370D2080}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C7E5578-8BE5-4567-AE2B-EECF370D2080}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C7E5578-8BE5-4567-AE2B-EECF370D2080}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{F9468D58-FB2C-4159-8194-62F94011B387} = {6AB724F5-DC67-42E2-BD80-6A0C57084C23}
@@ -110,5 +122,7 @@ Global
 		{A665E768-96FF-42CD-8568-CEC33F5D035E} = {6AB724F5-DC67-42E2-BD80-6A0C57084C23}
 		{44B118E4-2721-4B44-8CA2-CE665E1ABF21} = {6AB724F5-DC67-42E2-BD80-6A0C57084C23}
 		{438F35B7-0C76-4EF3-9DB9-FC7D18BBC70C} = {E73836F9-4497-4725-9DBC-C5307D81A335}
+		{DACB39A1-E014-4508-9347-18B367DD3C53} = {A34B81D7-7319-4682-9C3B-9ACA66B0B73F}
+		{3C7E5578-8BE5-4567-AE2B-EECF370D2080} = {A34B81D7-7319-4682-9C3B-9ACA66B0B73F}
 	EndGlobalSection
 EndGlobal
