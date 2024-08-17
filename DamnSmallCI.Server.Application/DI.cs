@@ -10,5 +10,6 @@ public static class DI
         where RT : struct, HasCancel<RT>
     {
         services.AddTransient<WebhookUseCase<RT>>();
+        services.AddSingleton<ResolverProvider<RT>>();
     }
 }
