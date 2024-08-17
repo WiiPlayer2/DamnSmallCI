@@ -4,6 +4,7 @@ using DamnSmallCI.Domain;
 using Docker.DotNet;
 using Docker.DotNet.Models;
 using LanguageExt.Effects.Traits;
+using Environment = DamnSmallCI.Domain.Environment;
 
 namespace DamnSmallCI.ContainerRuntime.Docker;
 
@@ -14,7 +15,7 @@ internal class DockerContainer<RT>(DockerClient client, string containerId) : IC
         Force = true,
     });
 
-    public Aff<RT, Unit> Run(IProgress<StepOutput> outputProgress, Step step) =>
+    public Aff<RT, Unit> Run(IProgress<StepOutput> outputProgress, Environment environment, Step step) =>
         from exec in Aff((RT rt) => client.Exec.ExecCreateContainerAsync(containerId, new ContainerExecCreateParameters
         {
             // Tty = true,
@@ -22,6 +23,9 @@ internal class DockerContainer<RT>(DockerClient client, string containerId) : IC
             AttachStdout = true,
             AttachStderr = true,
             Cmd = ["/bin/sh"],
+            Env = environment.Value.Pairs
+                .Select(kv => $"{kv.Key}={kv.Value}")
+                .ToList(),
         }, rt.CancellationToken).ToValue())
         from streams in Aff((RT rt) => client.Exec.StartAndAttachContainerExecAsync(exec.ID, false, rt.CancellationToken).ToValue())
         from inputBuffer in Eff(() => Encoding.UTF8.GetBytes(step.Value + "\n"))
