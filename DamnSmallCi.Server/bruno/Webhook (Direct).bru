@@ -1,0 +1,21 @@
+meta {
+  name: Webhook (Direct)
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:5229/webhook/direct?token=asdf
+  body: json
+  auth: none
+}
+
+params:query {
+  token: asdf
+}
+
+body:json {
+  {
+    "url": ""
+  }
+}

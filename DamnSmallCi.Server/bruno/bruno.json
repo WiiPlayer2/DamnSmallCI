@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "DamnSmallCi.Server",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}
