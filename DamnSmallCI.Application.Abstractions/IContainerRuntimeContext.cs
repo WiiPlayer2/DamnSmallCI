@@ -7,5 +7,5 @@ public interface IContainerRuntimeContext<RT> : IAsyncDisposable where RT : stru
 {
     Aff<RT, Unit> CopyFilesFromDirectory(DirectoryInfo directory);
 
-    Aff<RT, IContainer<RT>> NewContainer(ImageName image);
+    Aff<RT, IContainer<RT>> NewContainer(TaskContainerInfo containerInfo);
 }

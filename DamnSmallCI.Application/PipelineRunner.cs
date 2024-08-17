@@ -21,7 +21,7 @@ public class PipelineRunner<RT>(IContainerRuntime<RT> containerRuntime, IStepRun
     private Aff<RT, Unit> RunTaskInContainer(IContainerRuntimeContext<RT> context, IProgress<TaskOutput> outputProgress, TaskInfo task) =>
         from container in task.Container.ToEff($"Container not provided for task \"${task.Name}\"")
         from _10 in use(
-            context.NewContainer(container.Image).Map(x => x.WrapSync()),
+            context.NewContainer(container).Map(x => x.WrapSync()),
             containerWrap => taskRunner.Run(containerWrap.Value, outputProgress, task)
         )
         select unit;

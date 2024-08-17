@@ -10,27 +10,31 @@ namespace DamnSmallCI.ContainerRuntime.Docker;
 
 internal class DockerContainerRuntimeContext<RT>(DockerClient client, VolumeResponse volume) : IContainerRuntimeContext<RT> where RT : struct, HasCancel<RT>
 {
-    public async ValueTask DisposeAsync() => await client.Volumes.RemoveAsync(volume.Name);
+    public async ValueTask DisposeAsync() => await client.Volumes.RemoveAsync(volume.Name, true);
 
     public Aff<RT, Unit> CopyFilesFromDirectory(DirectoryInfo directory) =>
-        from container in CreateContainer(ImageName.From("busybox")) // TODO dispose container when done
+        from container in CreateContainer(new TaskContainerInfo(ImageName.From("ubuntu"), None)) // TODO dispose container when done
+        from exec in Aff((RT rt) => client.Exec.ExecCreateContainerAsync(container.ID, new ContainerExecCreateParameters
+        {
+            AttachStdin = true,
+            Cmd = ["sh", "-c", "tar xmf - -C /src"],
+        }, rt.CancellationToken).ToValue())
+        from streams in Aff((RT rt) => client.Exec.StartAndAttachContainerExecAsync(exec.ID, false, rt.CancellationToken).ToValue())
         let tarStream = new MemoryStream()
         from _10 in Aff((RT rt) => TarFile.CreateFromDirectoryAsync(directory.FullName, tarStream, false, rt.CancellationToken).ToUnit().ToValue())
         from _20 in Eff(fun(() => tarStream.Position = 0))
-        from _30 in Aff((RT rt) => client.Containers.ExtractArchiveToContainerAsync(container.ID, new ContainerPathStatParameters
-        {
-            Path = "/src",
-        }, tarStream, rt.CancellationToken).ToUnit().ToValue())
+        let tarData = tarStream.ToArray()
+        from _30 in Aff((RT rt) => streams.WriteAsync(tarData, 0, tarData.Length, rt.CancellationToken).ToUnit().ToValue())
+        from _40 in Eff(fun(streams.CloseWrite))
+        from _50 in Aff((RT rt) => streams.ReadOutputToEndAsync(rt.CancellationToken).ToValue())
         select unit;
 
-    public Aff<RT, IContainer<RT>> NewContainer(ImageName image) =>
-        from container in CreateContainer(image)
-        from containerStarted in Aff((RT rt) => client.Containers.StartContainerAsync(container.ID, new ContainerStartParameters(), rt.CancellationToken).ToValue())
-        from _10 in guard(containerStarted, Error.New("Failed to start container"))
+    public Aff<RT, IContainer<RT>> NewContainer(TaskContainerInfo containerInfo) =>
+        from container in CreateContainer(containerInfo)
         select (IContainer<RT>) new DockerContainer<RT>(client, container.ID);
 
-    private Aff<RT, CreateContainerResponse> CreateContainer(ImageName image) =>
-        from repoAndTag in SuccessEff(ParseImage(image))
+    private Aff<RT, CreateContainerResponse> CreateContainer(TaskContainerInfo containerInfo) =>
+        from repoAndTag in SuccessEff(ParseImage(containerInfo.Image))
         from _10 in Aff((RT rt) => client.Images.CreateImageAsync(new ImagesCreateParameters
                 {
                     FromImage = repoAndTag.Repo,
@@ -43,19 +47,24 @@ internal class DockerContainerRuntimeContext<RT>(DockerClient client, VolumeResp
             .ToValue())
         from container in Aff((RT rt) => client.Containers.CreateContainerAsync(new CreateContainerParameters
         {
-            Image = image.Value,
+            Image = containerInfo.Image.Value,
+            Entrypoint = containerInfo.Entrypoint.MatchUnsafe(
+                x => x.Value.ToList(),
+                () => default(IList<string>)),
             WorkingDir = "/src",
             AttachStdin = true,
             Tty = true,
-            Volumes = new Dictionary<string, EmptyStruct>
-            {
-                {$"{volume.Name}:/src", default},
-            },
             HostConfig = new HostConfig
             {
                 AutoRemove = true,
+                Binds =
+                [
+                    $"{volume.Name}:/src",
+                ],
             },
         }, rt.CancellationToken).ToValue())
+        from containerStarted in Aff((RT rt) => client.Containers.StartContainerAsync(container.ID, new ContainerStartParameters(), rt.CancellationToken).ToValue())
+        from _20 in guard(containerStarted, Error.New("Failed to start container"))
         select container;
 
     // TODO should be part of the domain logic

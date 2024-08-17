@@ -85,7 +85,7 @@ internal class KubernetesContainerRuntimeContext<RT>(k8s.Kubernetes kubernetes, 
         from _30 in Aff((RT rt) => client.DeleteAsync<V1Pod>(createdPod.Name(), createdPod.Namespace(), rt.CancellationToken).ToUnit().ToValue())
         select unit;
 
-    public Aff<RT, IContainer<RT>> NewContainer(ImageName image) =>
+    public Aff<RT, IContainer<RT>> NewContainer(TaskContainerInfo containerInfo) =>
         from pod in SuccessEff(new V1Pod
         {
             Metadata = new V1ObjectMeta
@@ -111,7 +111,10 @@ internal class KubernetesContainerRuntimeContext<RT>(k8s.Kubernetes kubernetes, 
                     new V1Container
                     {
                         Name = "task",
-                        Image = image.Value,
+                        Image = containerInfo.Image.Value,
+                        Command = containerInfo.Entrypoint.MatchUnsafe(
+                            x => x.Value.ToList(),
+                            () => default(IList<string>)),
                         WorkingDir = "/src",
                         Tty = true,
                         Stdin = true,
