@@ -16,3 +16,6 @@ public partial record struct PipelineOutput;
 
 [ValueObject<string>]
 public partial record struct ImageName;
+
+[ValueObject<Seq<string>>]
+public partial record struct ContainerEntrypoint;

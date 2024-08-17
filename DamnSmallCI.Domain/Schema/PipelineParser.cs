@@ -35,6 +35,23 @@ public class PipelineParser
     private static Validation<YamlError, T> Fail<T>(YamlNode node, string message) =>
         Fail<YamlError, T>(new YamlError(node, message));
 
+    private static Validation<YamlError, TaskContainerInfo> ParseContainer(YamlNode containerSchema) =>
+        from map in AsMap(containerSchema)
+        from image in map.Find("image")
+            .ToValidation(new YamlError(containerSchema, "Expected property \"image\""))
+            .Bind(AsString)
+            .Map(ImageName.From)
+        from entrypoint in map.Find("entrypoint")
+            .Map(x =>
+                from list in AsList(x)
+                from stringList in list.Select(AsString).Traverse(identity)
+                select ContainerEntrypoint.From(stringList.ToSeq())
+            )
+            .Traverse(identity)
+        select new TaskContainerInfo(
+            image,
+            entrypoint);
+
     private static Validation<YamlError, Step> ParseStep(YamlNode stepSchema) =>
         from @string in AsString(stepSchema)
         select Step.From(@string);
@@ -54,10 +71,13 @@ public class PipelineParser
         from imageName in map.Find("image")
             .Map(AsString)
             .Traverse(ImageName.From)
+        from container in map.Find("container")
+            .Map(ParseContainer)
+            .Traverse(identity)
         from steps in map.Find("steps").Match(
             ParseSteps,
             () => List<Step>())
-        select new TaskInfo(TaskName.From(name), imageName, steps);
+        select new TaskInfo(TaskName.From(name), container, steps);
 
     private static Validation<YamlError, Lst<TaskInfo>> ParseTasks(YamlNode tasksSchema) =>
         from list in AsList(tasksSchema)

@@ -2,5 +2,5 @@ namespace DamnSmallCI.Domain;
 
 public record TaskInfo(
     TaskName Name,
-    Option<ImageName> Image,
+    Option<TaskContainerInfo> Container,
     Lst<Step> Steps);

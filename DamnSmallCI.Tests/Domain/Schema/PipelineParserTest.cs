@@ -7,6 +7,12 @@ namespace DamnSmallCI.Tests.Domain.Schema;
 [TestClass]
 public class PipelineParserTest
 {
+    [ClassInitialize]
+    public static void Initialize(TestContext ctx)
+    {
+        AssertionOptions.FormattingOptions.MaxDepth = 10;
+    }
+
     [TestMethod]
     public void Parse_WithEmptySchema_ReturnsEmptyPipeline()
     {
@@ -50,19 +56,52 @@ public class PipelineParserTest
             ("tasks", YamlNode.List(List(
                 YamlNode.Map(Map(
                     ("name", YamlNode.String("test-task")),
-                    ("image", YamlNode.String("test-image"))
+                    ("container", YamlNode.Map(Map(
+                        ("image", YamlNode.String("test-image")))))
                 )))
             ))));
         var expected = new PipelineInfo(List(
             new TaskInfo(
                 TaskName.From("test-task"),
-                Some(ImageName.From("test-image")),
+                Some(new TaskContainerInfo(
+                    ImageName.From("test-image"),
+                    None)),
                 List<Step>())));
 
         // Act
-
+        var result = PipelineParser.Parse(schema);
 
         // Assert
+        result.Case.Should().Be(expected);
+    }
+
+    [TestMethod]
+    public void Parse_WithTaskWithImageAndEntrypoint_ReturnsPipelineWithTaskWithImageAndEntrypoint()
+    {
+        // Arrange
+        var schema = YamlNode.Map(Map(
+            ("tasks", YamlNode.List(List(
+                YamlNode.Map(Map(
+                    ("name", YamlNode.String("test-task")),
+                    ("container", YamlNode.Map(Map(
+                        ("image", YamlNode.String("test-image")),
+                        ("entrypoint", YamlNode.List(List(
+                            YamlNode.String("cmd")))))))
+                )))
+            ))));
+        var expected = new PipelineInfo(List(
+            new TaskInfo(
+                TaskName.From("test-task"),
+                Some(new TaskContainerInfo(
+                    ImageName.From("test-image"),
+                    ContainerEntrypoint.From(Seq1("cmd")))),
+                List<Step>())));
+
+        // Act
+        var result = PipelineParser.Parse(schema);
+
+        // Assert
+        result.Case.Should().Be(expected);
     }
 
     [TestMethod]
