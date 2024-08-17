@@ -1,5 +1,6 @@
 using System.CommandLine.Invocation;
 using DamnSmallCI.Application;
+using DamnSmallCI.Domain;
 using LanguageExt;
 using LanguageExt.Effects.Traits;
 using LanguageExt.Sys.Live;
@@ -28,7 +29,9 @@ internal class RunCommandHandler(ILogger<RunCommand> logger, RunUseCase<Runtime>
     }
 
     private Aff<RT, Unit> InvokeAff<RT>(InvocationContext context, RunUseCase<RT> runUseCase) where RT : struct, HasCancel<RT> =>
-        from pipelineFile in Eff(() => context.ParseResult.GetValueForArgument(Arguments.PipelineFile))
-        from _ in runUseCase.Run(pipelineFile.Directory, pipelineFile)
+        from contextDirectory in Eff(() => context.ParseResult.GetValueForArgument(Arguments.ContextDirectory))
+        from pipelineFile in Eff(() => context.ParseResult.GetValueForOption(Options.PipelineFile)
+                                       ?? new FileInfo(Path.Combine(contextDirectory.FullName, DomainConstants.DEFAULT_PIPELINE_FILENAME)))
+        from _ in runUseCase.Run(contextDirectory, pipelineFile)
         select unit;
 }
