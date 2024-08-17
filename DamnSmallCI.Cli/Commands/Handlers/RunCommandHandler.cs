@@ -1,6 +1,7 @@
 using System.CommandLine.Invocation;
 using DamnSmallCI.Application;
 using DamnSmallCI.Domain;
+using DotNetEnv;
 using LanguageExt;
 using LanguageExt.Effects.Traits;
 using LanguageExt.Sys.Live;
@@ -33,6 +34,18 @@ internal class RunCommandHandler(ILogger<RunCommand> logger, RunUseCase<Runtime>
         from contextDirectory in Eff(() => context.ParseResult.GetValueForArgument(Arguments.ContextDirectory))
         from pipelineFile in Eff(() => context.ParseResult.GetValueForOption(Options.PipelineFile)
                                        ?? new FileInfo(Path.Combine(contextDirectory.FullName, DomainConstants.DEFAULT_PIPELINE_FILENAME)))
-        from _ in runUseCase.Run(Environment.Empty, contextDirectory, pipelineFile)
+        from environmentFileOption in Eff(() => Optional(context.ParseResult.GetValueForOption(Options.EnvironmentFile)))
+        from environment in environmentFileOption.Match(
+            LoadEnvironmentFile<RT>,
+            () => SuccessEff(Environment.Empty))
+        from _ in runUseCase.Run(environment, contextDirectory, pipelineFile)
         select unit;
+
+    private Aff<RT, Environment> LoadEnvironmentFile<RT>(FileInfo environmentFile) where RT : struct, HasCancel<RT> =>
+        from pairs in Eff(() => Env.Load(environmentFile.FullName, LoadOptions.NoEnvVars()))
+        from map in Eff(() => pairs
+            .Select(x => (EnvironmentVariableName.From(x.Key), EnvironmentVariableValue.From(x.Value)))
+            .ToMap()
+        )
+        select Environment.From(map);
 }
