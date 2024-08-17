@@ -27,6 +27,7 @@ internal class DockerContainerRuntimeContext<RT>(DockerClient client, VolumeResp
         from _30 in Aff((RT rt) => streams.WriteAsync(tarData, 0, tarData.Length, rt.CancellationToken).ToUnit().ToValue())
         from _40 in Eff(fun(streams.CloseWrite))
         from _50 in Aff((RT rt) => streams.ReadOutputToEndAsync(rt.CancellationToken).ToValue())
+        from _60 in Aff((RT rt) => client.Containers.RemoveContainerAsync(container.ID, new ContainerRemoveParameters {Force = true}, rt.CancellationToken).ToUnit().ToValue())
         select unit;
 
     public Aff<RT, IContainer<RT>> NewContainer(TaskContainerInfo containerInfo) =>
