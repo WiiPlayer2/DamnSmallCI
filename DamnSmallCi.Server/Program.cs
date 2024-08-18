@@ -32,12 +32,15 @@ builder.Services.AddDirectRepositoryResolver<Runtime>();
 builder.Services.AddGitCliRepositoryManager<Runtime>();
 
 builder.Services.AddOptions<ServerConfig>()
-    .BindConfiguration("Config");
+    .BindConfiguration("Config")
+    .ValidateDataAnnotations();
 builder.Services.AddTransient<ServerEnvironment>(sp => sp.GetRequiredService<IOptionsSnapshot<ServerConfig>>()
     .Value.Environment
     .Select(x => (EnvironmentVariableName.From(x.Key), EnvironmentVariableValue.From(x.Value)))
     .ToMap()
     .Apply(x => new ServerEnvironment(Environment.From(x))));
+builder.Services.AddTransient<AuthorizedWebhookToken>(sp => sp.GetRequiredService<IOptionsSnapshot<ServerConfig>>()
+    .Value.AuthorizedToken.Apply(x => new AuthorizedWebhookToken(WebhookToken.From(x))));
 
 var app = builder.Build();
 
