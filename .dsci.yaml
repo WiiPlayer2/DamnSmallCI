@@ -1,4 +1,20 @@
 tasks:
-  - name: Placeholder
+  - name: Build server image
+    container:
+      image: gcr.io/kaniko-project/executor:debug
+      entrypoint: ["sleep", "9999"]
     steps:
-      - echo "only a placholder for now"
+      - >-
+        /kaniko/executor
+        --context "."
+        --dockerfile "DamnSmallCi.Server/Dockerfile"
+        --no-push
+        --tar-path "image.tar"
+
+  - name: Publish server image
+    container:
+      image: gcr.io/go-containerregistry/crane:debug
+      entrypoint: ["sleep", "9999"]
+    steps:
+      - crane auth login -u $IMAGE_REGISTRY_USER -p $IMAGE_REGISTRY_PASSWORD $IMAGE_REGISTRY
+      - crane push image.tar wiiplayer2/damnsmallci-server:latest
