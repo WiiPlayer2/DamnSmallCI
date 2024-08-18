@@ -14,7 +14,7 @@ internal class KubernetesContainer<RT>(k8s.Kubernetes kubernetes, KubernetesClie
 
     public Aff<RT, Unit> Run(IProgress<StepOutput> outputProgress, Environment environment, Step step) =>
         from _10 in Aff(async (RT rt) => await Cli.Wrap("kubectl")
-            .WithArguments(["exec", "-i", "-n", pod.Namespace(), pod.Name(), "--", "/bin/sh"])
+            .WithArguments(["exec", "-i", "-n", pod.Namespace(), pod.Name(), "--", "sh"])
             .WithStandardInputPipe(PipeSource.FromString(string.Join("\n", environment.Value.Pairs.Select(x => $"export {x.Key}={x.Value}")) + "\n" + step.Value + "\n"))
             .WithStandardOutputPipe(PipeTarget.ToDelegate(line => outputProgress.Report(StepOutput.From(line))))
             .WithStandardErrorPipe(PipeTarget.ToDelegate(line => outputProgress.Report(StepOutput.From(line))))

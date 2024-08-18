@@ -22,7 +22,7 @@ internal class DockerContainer<RT>(DockerClient client, string containerId) : IC
             AttachStdin = true,
             AttachStdout = true,
             AttachStderr = true,
-            Cmd = ["/bin/sh"],
+            Cmd = ["sh"],
             Env = environment.Value.Pairs
                 .Select(kv => $"{kv.Key}={kv.Value}")
                 .ToList(),
