@@ -1,4 +1,4 @@
-tasks:
+tasks:    
   - name: Build server image
     container:
       image: gcr.io/kaniko-project/executor:debug
