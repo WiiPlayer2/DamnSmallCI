@@ -25,6 +25,7 @@
         <ProjectReference Include="..\DamnSmallCI.Server.Application\DamnSmallCI.Server.Application.csproj"/>
         <ProjectReference Include="..\DamnSmallCI.Server.RepositoryManager.GitCli\DamnSmallCI.Server.RepositoryManager.GitCli.csproj"/>
         <ProjectReference Include="..\DamnSmallCI.Server.RepositoryResolver.Direct\DamnSmallCI.Server.RepositoryResolver.Direct.csproj"/>
+        <ProjectReference Include="..\DamnSmallCI.Server.RepositoryResolver.Github\DamnSmallCI.Server.RepositoryResolver.Github.csproj"/>
         <ProjectReference Include="..\DamnSmallCI.StepRunner.Shell\DamnSmallCI.StepRunner.Shell.csproj"/>
         <ProjectReference Include="..\DamnSmallCI.YamlReader.YamlDotNet\DamnSmallCI.YamlReader.YamlDotNet.csproj"/>
     </ItemGroup>

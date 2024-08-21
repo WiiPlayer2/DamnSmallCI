@@ -7,6 +7,7 @@ using DamnSmallCI.Server.Application;
 using DamnSmallCI.Server.Domain;
 using DamnSmallCI.Server.RepositoryManager.GitCli;
 using DamnSmallCI.Server.RepositoryResolver.Direct;
+using DamnSmallCI.Server.RepositoryResolver.Github;
 using DamnSmallCI.StepRunner.Shell;
 using DamnSmallCI.YamlReader.YamlDotNet;
 using LanguageExt;
@@ -30,6 +31,7 @@ builder.Services.AddKubernetesContainerRuntime<Runtime>();
 builder.Services.AddShellStepRunner<Runtime>();
 builder.Services.AddDirectRepositoryResolver<Runtime>();
 builder.Services.AddGitCliRepositoryManager<Runtime>();
+builder.Services.AddGithubRepositoryResolver<Runtime>();
 
 builder.Services.AddOptions<ServerConfig>()
     .BindConfiguration("Config")
