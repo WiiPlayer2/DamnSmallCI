@@ -1,4 +1,5 @@
 using System.Formats.Tar;
+using CliWrap;
 using DamnSmallCI.Application;
 using DamnSmallCI.Domain;
 using k8s;
@@ -57,31 +58,17 @@ internal class KubernetesContainerRuntimeContext<RT>(k8s.Kubernetes kubernetes, 
         from createdPod in Aff((RT rt) => client.CreateAsync(pod, rt.CancellationToken).ToValue())
         from _10 in Aff((RT rt) => client.WatchAsync<V1Pod>(createdPod.Namespace(), cancellationToken: rt.CancellationToken)
             .FirstAsync(x => x.Type == WatchEventType.Modified && x.Entity.Status.Phase == "Running"))
-        from _20 in Aff(async (RT rt) =>
-        {
-            using var muxedStream = await kubernetes.MuxedStreamNamespacedPodExecAsync(
-                createdPod.Name(),
-                createdPod.Namespace(),
-                ["sh", "-c", "tar xmf - -C /src"],
-                "init",
-                stdin: true,
-                stderr: false,
-                stdout: false,
-                tty: false,
-                cancellationToken: rt.CancellationToken).ConfigureAwait(false);
-            using var stdIn = muxedStream.GetStream(null, ChannelIndex.StdIn);
-            // using var error = muxedStream.GetStream(ChannelIndex.Error, null);
-            // using var errorReader = new StreamReader(error);
-
-            muxedStream.Start();
-
-            await TarFile.CreateFromDirectoryAsync(directory.FullName, stdIn, false, rt.CancellationToken);
-            await stdIn.FlushAsync(rt.CancellationToken);
-
-            stdIn.Close();
-
-            return unit;
-        })
+        from _20 in use(
+            SuccessAff(new MemoryStream()),
+            memoryStream =>
+                from _10 in Aff((RT rt) => TarFile.CreateFromDirectoryAsync(directory.FullName, memoryStream, false, rt.CancellationToken).ToUnit().ToValue())
+                from _20 in Eff(() => memoryStream.Position = 0)
+                from _30 in Aff(async (RT rt) => await Cli.Wrap("kubectl")
+                    .WithArguments(["exec", "-i", "-n", pod.Namespace(), pod.Name(), "--", "sh", "-c", "tar xmf - -C /src"])
+                    .WithStandardInputPipe(PipeSource.FromStream(memoryStream, true))
+                    .ExecuteAsync(rt.CancellationToken))
+                select unit
+        )
         from _30 in Aff((RT rt) => client.DeleteAsync<V1Pod>(createdPod.Name(), createdPod.Namespace(), rt.CancellationToken).ToUnit().ToValue())
         select unit;
 
