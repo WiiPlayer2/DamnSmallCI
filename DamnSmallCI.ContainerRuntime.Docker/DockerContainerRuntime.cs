@@ -7,6 +7,8 @@ namespace DamnSmallCI.ContainerRuntime.Docker;
 
 internal class DockerContainerRuntime<RT> : IContainerRuntime<RT> where RT : struct, HasCancel<RT>
 {
+    public string Name => "docker";
+
     public Aff<RT, IContainerRuntimeContext<RT>> NewContext() =>
         from dockerClient in Eff((RT rt) => new DockerClientConfiguration().CreateClient()) // TODO: dispose config & client
         from volumeResponse in Aff((RT rt) => dockerClient.Volumes.CreateAsync(new VolumesCreateParameters(), rt.CancellationToken).ToValue())

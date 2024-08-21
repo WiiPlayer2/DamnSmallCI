@@ -4,14 +4,14 @@ using Environment = DamnSmallCI.Domain.Environment;
 
 namespace DamnSmallCI.Application;
 
-public class PipelineRunner<RT>(IContainerRuntime<RT> containerRuntime, IStepRunner<RT> localStepRunner, TaskRunner<RT> taskRunner) where RT : struct, HasCancel<RT>
+public class PipelineRunner<RT>(IStepRunner<RT> localStepRunner, TaskRunner<RT> taskRunner) where RT : struct, HasCancel<RT>
 {
-    public Aff<RT, Unit> Run(IProgress<PipelineOutput> outputProgress, Environment environment, DirectoryInfo contextDirectory, PipelineInfo pipeline) =>
+    public Aff<RT, Unit> Run(IContainerRuntime<RT> containerRuntime, IProgress<PipelineOutput> outputProgress, Environment environment, DirectoryInfo contextDirectory, PipelineInfo pipeline) =>
         from taskOutput in SuccessEff(new Progress<TaskOutput>(x => outputProgress.Report(PipelineOutput.From(x.Value))))
         let hasContainerTasks = HasContainerTasks(pipeline)
         from _05 in Eff(fun(() => outputProgress.Report(PipelineOutput.From("====== [PIPELINE START] ======"))))
         from _10 in hasContainerTasks
-            ? RunTasksInContainers(taskOutput, environment, contextDirectory, pipeline.Tasks)
+            ? RunTasksInContainers(containerRuntime, taskOutput, environment, contextDirectory, pipeline.Tasks)
             : RunTasksLocally(taskOutput, environment, pipeline.Tasks)
         from _20 in Eff(fun(() => outputProgress.Report(PipelineOutput.From("====== [PIPELINE END] ======"))))
         select unit;
@@ -27,7 +27,7 @@ public class PipelineRunner<RT>(IContainerRuntime<RT> containerRuntime, IStepRun
         )
         select unit;
 
-    private Aff<RT, Unit> RunTasksInContainers(IProgress<TaskOutput> outputProgress, Environment environment, DirectoryInfo baseDirectory, Lst<TaskInfo> tasks) =>
+    private Aff<RT, Unit> RunTasksInContainers(IContainerRuntime<RT> containerRuntime, IProgress<TaskOutput> outputProgress, Environment environment, DirectoryInfo baseDirectory, Lst<TaskInfo> tasks) =>
         use(
             containerRuntime.NewContext().Map(x => x.WrapSync()),
             containerRuntimeContextWrap =>

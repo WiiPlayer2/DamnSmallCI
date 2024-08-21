@@ -5,6 +5,12 @@ namespace DamnSmallCI.Cli.Commands;
 
 internal static class Options
 {
+    public static Option<ContainerRuntime> ContainerRuntime { get; } = new(
+        ["--container-runtime", "-r"],
+        () => Commands.ContainerRuntime.Docker,
+        "The container runtime to be used for executing container tasks."
+    );
+
     public static Option<FileInfo?> EnvironmentFile { get; } = new(
         ["--environment-file", "-e"],
         () => default,

@@ -6,6 +6,7 @@ using DamnSmallCI.Application;
 using DamnSmallCI.Cli.Commands;
 using DamnSmallCI.Cli.Commands.Handlers;
 using DamnSmallCI.ContainerRuntime.Docker;
+using DamnSmallCI.ContainerRuntime.Kubernetes;
 using DamnSmallCI.StepRunner.Shell;
 using DamnSmallCI.YamlReader.YamlDotNet;
 using LanguageExt.Sys.Live;
@@ -24,6 +25,7 @@ return new CommandLineBuilder(new RootCommand("Pipeline running engine for local
                 services.AddYamlDotNetYamlReader();
                 services.AddShellStepRunner<Runtime>();
                 services.AddDockerContainerRuntime<Runtime>();
+                services.AddKubernetesContainerRuntime<Runtime>();
                 services.AddApplicationServices<Runtime>();
             })
             .UseCommandHandler<RunCommand, RunCommandHandler>())

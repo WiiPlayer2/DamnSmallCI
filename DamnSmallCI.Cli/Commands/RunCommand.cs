@@ -8,6 +8,7 @@ internal class RunCommand : Command
     {
         Add(Commands.Options.PipelineFile);
         Add(Commands.Options.EnvironmentFile);
+        Add(Commands.Options.ContainerRuntime);
         Add(Commands.Arguments.ContextDirectory);
     }
 }

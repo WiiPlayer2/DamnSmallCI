@@ -8,6 +8,8 @@ namespace DamnSmallCI.ContainerRuntime.Kubernetes;
 
 internal class KubernetesContainerRuntime<RT> : IContainerRuntime<RT> where RT : struct, HasCancel<RT>
 {
+    public string Name => "kubernetes";
+
     public Aff<RT, IContainerRuntimeContext<RT>> NewContext() =>
         from clientConfig in Eff(KubernetesClientConfiguration.BuildDefaultConfig)
         from kubernetes in Eff(() => new k8s.Kubernetes(clientConfig))
