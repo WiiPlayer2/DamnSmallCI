@@ -36,16 +36,20 @@ internal class DockerContainerRuntimeContext<RT>(DockerClient client, VolumeResp
 
     private Aff<RT, CreateContainerResponse> CreateContainer(TaskContainerInfo containerInfo) =>
         from repoAndTag in SuccessEff(ParseImage(containerInfo.Image))
-        from _10 in Aff((RT rt) => client.Images.CreateImageAsync(new ImagesCreateParameters
-                {
-                    FromImage = repoAndTag.Repo,
-                    Tag = repoAndTag.Tag,
-                },
-                new AuthConfig(),
-                new Progress<JSONMessage>(),
-                rt.CancellationToken)
-            .ToUnit()
-            .ToValue())
+        from _10 in Aff((RT rt) => client.Images.ListImagesAsync(new ImagesListParameters(), rt.CancellationToken).ToValue())
+            .Map(x => x.Find(x => x.RepoTags.Contains($"{repoAndTag.Repo}:{repoAndTag.Tag}"))
+                .Match(
+                    _ => unitAff,
+                    () => Aff((RT rt) => client.Images.CreateImageAsync(new ImagesCreateParameters
+                            {
+                                FromImage = repoAndTag.Repo,
+                                Tag = repoAndTag.Tag,
+                            },
+                            new AuthConfig(),
+                            new Progress<JSONMessage>(),
+                            rt.CancellationToken)
+                        .ToUnit()
+                        .ToValue())))
         from container in Aff((RT rt) => client.Containers.CreateContainerAsync(new CreateContainerParameters
         {
             Image = containerInfo.Image.Value,
