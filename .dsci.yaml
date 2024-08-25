@@ -1,4 +1,12 @@
-tasks:    
+tasks:
+  - name: Build CLI package
+    container:
+      image: mcr.microsoft.com/dotnet/sdk:8.0
+    steps:
+      - |
+        VERSION_SUFFIX=$(date +%s)
+        dotnet pack --configuration Release --output ./out --version-suffix "${VERSION_SUFFIX}" DamnSmallCI.Cli/DamnSmallCI.Cli.csproj
+  
   - name: Build server image
     container:
       image: gcr.io/kaniko-project/executor:debug
@@ -10,6 +18,12 @@ tasks:
         --dockerfile "DamnSmallCi.Server/Dockerfile"
         --no-push
         --tar-path "image.tar"
+        
+  - name: Publish CLI package
+    container:
+      image: mcr.microsoft.com/dotnet/sdk:8.0
+    steps:
+      - dotnet nuget push ./out/* --skip-duplicate --source "$NUGET_SOURCE" --api-key "$NUGET_APIKEY"
 
   - name: Publish server image
     container:

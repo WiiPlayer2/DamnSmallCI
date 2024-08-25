@@ -41,5 +41,9 @@ internal class DockerContainer<RT>(DockerClient client, string containerId) : IC
             select readResult.EOF,
             identity
         )
+        from execInspect in Aff((RT rt) => client.Exec.InspectContainerExecAsync(exec.ID, rt.CancellationToken).ToValue())
+        from _40 in execInspect.ExitCode == 0
+            ? unitEff
+            : FailEff<Unit>($"Expected exit code 0, got {execInspect.ExitCode}")
         select unit;
 }
