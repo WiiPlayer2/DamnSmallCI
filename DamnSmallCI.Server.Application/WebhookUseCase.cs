@@ -11,9 +11,8 @@ public class WebhookUseCase<RT>(
     AuthorizedWebhookToken authorizedWebhookToken,
     ResolverProvider<RT> resolverProvider,
     IRepositoryManager<RT> repositoryManager,
-    RunUseCase<RT> runUseCase,
-    IContainerRuntime<RT> containerRuntime
-) where RT : struct, HasCancel<RT>
+    IContainerRuntime<RT> containerRuntime,
+    RunDispatcher<RT> runDispatcher) where RT : struct, HasCancel<RT>
 {
     public Aff<RT, Unit> Execute(RepositoryResolverName resolverName, RepositoryResolverWebhookBody webhookBody, WebhookToken token) =>
         from _05 in guard(authorizedWebhookToken.Token == token, Error.New("Unauthorized"))
@@ -21,7 +20,7 @@ public class WebhookUseCase<RT>(
         from repositoryInfo in resolver.Resolve(webhookBody)
         from targetDirectory in Eff(() => new DirectoryInfo(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString())))
         from _10 in repositoryManager.Clone(repositoryInfo, targetDirectory)
-        from _20 in runUseCase.Run(containerRuntime, environment.Environment, targetDirectory, new FileInfo(Path.Combine(targetDirectory.FullName, DomainConstants.DEFAULT_PIPELINE_FILENAME)))
+        from _20 in runDispatcher.Dispatch(containerRuntime, environment.Environment, targetDirectory, new FileInfo(Path.Combine(targetDirectory.FullName, DomainConstants.DEFAULT_PIPELINE_FILENAME)))
         from _30 in Eff(fun(() => targetDirectory.Delete(true)))
         select unit;
 }

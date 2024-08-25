@@ -43,6 +43,7 @@ builder.Services.AddTransient<ServerEnvironment>(sp => sp.GetRequiredService<IOp
     .Apply(x => new ServerEnvironment(Environment.From(x))));
 builder.Services.AddTransient<AuthorizedWebhookToken>(sp => sp.GetRequiredService<IOptionsSnapshot<ServerConfig>>()
     .Value.AuthorizedToken.Apply(x => new AuthorizedWebhookToken(WebhookToken.From(x))));
+builder.Services.AddSingleton<IServiceRuntime<Runtime>, ServiceRuntime>();
 
 var app = builder.Build();
 
