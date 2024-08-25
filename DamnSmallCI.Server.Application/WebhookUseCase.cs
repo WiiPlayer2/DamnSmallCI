@@ -20,7 +20,12 @@ public class WebhookUseCase<RT>(
         from repositoryInfo in resolver.Resolve(webhookBody)
         from targetDirectory in Eff(() => new DirectoryInfo(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString())))
         from _10 in repositoryManager.Clone(repositoryInfo, targetDirectory)
-        from _20 in runDispatcher.Dispatch(containerRuntime, environment.Environment, targetDirectory, new FileInfo(Path.Combine(targetDirectory.FullName, DomainConstants.DEFAULT_PIPELINE_FILENAME)))
-        from _30 in Eff(fun(() => targetDirectory.Delete(true)))
+        from _20 in runDispatcher.Dispatch(
+            containerRuntime,
+            environment.Environment,
+            targetDirectory,
+            new FileInfo(Path.Combine(targetDirectory.FullName,
+                DomainConstants.DEFAULT_PIPELINE_FILENAME)),
+            Eff(fun(() => targetDirectory.Delete(true))))
         select unit;
 }
