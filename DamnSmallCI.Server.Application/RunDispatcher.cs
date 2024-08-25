@@ -1,17 +1,27 @@
 using DamnSmallCI.Application;
 using LanguageExt.Effects.Traits;
+using Microsoft.Extensions.Logging;
 using Environment = DamnSmallCI.Domain.Environment;
 
 namespace DamnSmallCI.Server.Application;
 
 public class RunDispatcher<RT>(
     IServiceRuntime<RT> serviceRuntime,
-    RunUseCase<RT> runUseCase) where RT : struct, HasCancel<RT>
+    RunUseCase<RT> runUseCase,
+    ILogger<RunDispatcher<RT>> logger) where RT : struct, HasCancel<RT>
 {
     public Eff<Unit> Dispatch(IContainerRuntime<RT> containerRuntime, Environment environment, DirectoryInfo contextDirectory, FileInfo pipelineFile) =>
-        from _10 in EffMaybe(() => runUseCase
-            .Run(containerRuntime, environment, contextDirectory, pipelineFile)
+        from _10 in EffMaybe(() => (
+                from _10 in runUseCase
+                                .Run(containerRuntime, environment, contextDirectory, pipelineFile)
+                            | @catch(error =>
+                                from _10 in Eff(fun(() => logger.LogError(error.ToException(), "Run failed.")))
+                                from _20 in FailEff<Unit>(error)
+                                select unit)
+                select unit
+            )
             .Fork()
-            .Run(serviceRuntime.Runtime))
+            .Run(serviceRuntime.Runtime)
+        )
         select unit;
 }
