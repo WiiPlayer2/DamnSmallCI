@@ -1,10 +1,14 @@
 using DamnSmallCI.Domain;
 using LanguageExt.Effects.Traits;
+using Microsoft.Extensions.Logging;
 using Environment = DamnSmallCI.Domain.Environment;
 
 namespace DamnSmallCI.Application;
 
-public class PipelineRunner<RT>(IStepRunner<RT> localStepRunner, TaskRunner<RT> taskRunner) where RT : struct, HasCancel<RT>
+public class PipelineRunner<RT>(
+    IStepRunner<RT> localStepRunner,
+    TaskRunner<RT> taskRunner,
+    ILogger<PipelineRunner<RT>> logger) where RT : struct, HasCancel<RT>
 {
     public Aff<RT, Unit> Run(IContainerRuntime<RT> containerRuntime, IProgress<PipelineOutput> outputProgress, Environment environment, DirectoryInfo contextDirectory, PipelineInfo pipeline) =>
         from taskOutput in SuccessEff(new Progress<TaskOutput>(x => outputProgress.Report(PipelineOutput.From(x.Value))))
@@ -32,6 +36,7 @@ public class PipelineRunner<RT>(IStepRunner<RT> localStepRunner, TaskRunner<RT> 
             containerRuntime.NewContext().Map(x => x.WrapSync()),
             containerRuntimeContextWrap =>
                 from _10 in Eff(fun(() => outputProgress.Report(TaskOutput.From("==== [COPY CONTEXT] ======"))))
+                from _15 in Eff(fun(() => logger.LogDebug("Copying files from {baseDirectory}", baseDirectory)))
                 from _20 in containerRuntimeContextWrap.Value.CopyFilesFromDirectory(baseDirectory)
                 from _30 in tasks
                     .Select(x => RunTaskInContainer(containerRuntimeContextWrap.Value, outputProgress, environment, x))
