@@ -14,48 +14,7 @@ internal class KubernetesContainerRuntimeContext<RT>(k8s.Kubernetes kubernetes, 
     public async ValueTask DisposeAsync() => await client.DeleteAsync<V1PersistentVolumeClaim>(pvc.Name(), pvc.Namespace());
 
     public Aff<RT, Unit> CopyFilesFromDirectory(DirectoryInfo directory) =>
-        from pod in SuccessEff(new V1Pod
-        {
-            Metadata = new V1ObjectMeta
-            {
-                Name = $"{pvc.Name()}-init",
-                NamespaceProperty = pvc.Namespace(),
-            },
-            Spec = new V1PodSpec
-            {
-                Volumes =
-                [
-                    new V1Volume
-                    {
-                        Name = "source",
-                        PersistentVolumeClaim = new V1PersistentVolumeClaimVolumeSource
-                        {
-                            ClaimName = pvc.Name(),
-                        },
-                    },
-                ],
-                Containers =
-                [
-                    new V1Container
-                    {
-                        Name = "init",
-                        Image = "busybox",
-                        WorkingDir = "/src",
-                        Tty = true,
-                        Stdin = true,
-                        VolumeMounts =
-                        [
-                            new V1VolumeMount
-                            {
-                                Name = "source",
-                                MountPath = "/src",
-                            },
-                        ],
-                    },
-                ],
-            },
-        })
-        from createdPod in Aff((RT rt) => client.CreateAsync(pod, rt.CancellationToken).ToValue())
+        from createdPod in CreatePod(ImageName.From("busybox"), None)
         from _10 in Aff((RT rt) => client.WatchAsync<V1Pod>(createdPod.Namespace(), cancellationToken: rt.CancellationToken)
             .FirstAsync(x => x.Type == WatchEventType.Modified && x.Entity.Status.Phase == "Running"))
         from _20 in use(
@@ -64,7 +23,7 @@ internal class KubernetesContainerRuntimeContext<RT>(k8s.Kubernetes kubernetes, 
                 from _10 in Aff((RT rt) => TarFile.CreateFromDirectoryAsync(directory.FullName, memoryStream, false, rt.CancellationToken).ToUnit().ToValue())
                 from _20 in Eff(() => memoryStream.Position = 0)
                 from _30 in Aff(async (RT rt) => await Cli.Wrap("kubectl")
-                    .WithArguments(["exec", "-i", "-n", pod.Namespace(), pod.Name(), "--", "sh", "-c", "tar xmf - -C /src"])
+                    .WithArguments(["exec", "-i", "-n", createdPod.Namespace(), createdPod.Name(), "--", "sh", "-c", "tar xmf - -C /src"])
                     .WithStandardInputPipe(PipeSource.FromStream(memoryStream, true))
                     .ExecuteAsync(rt.CancellationToken))
                 select unit
@@ -73,6 +32,10 @@ internal class KubernetesContainerRuntimeContext<RT>(k8s.Kubernetes kubernetes, 
         select unit;
 
     public Aff<RT, IContainer<RT>> NewContainer(TaskContainerInfo containerInfo) =>
+        from createdPod in CreatePod(containerInfo.Image, containerInfo.Entrypoint)
+        select (IContainer<RT>) new KubernetesContainer<RT>(kubernetes, client, createdPod);
+
+    private Aff<RT, V1Pod> CreatePod(ImageName image, Option<ContainerEntrypoint> entrypoint) =>
         from pod in SuccessEff(new V1Pod
         {
             Metadata = new V1ObjectMeta
@@ -98,8 +61,8 @@ internal class KubernetesContainerRuntimeContext<RT>(k8s.Kubernetes kubernetes, 
                     new V1Container
                     {
                         Name = "task",
-                        Image = containerInfo.Image.Value,
-                        Command = containerInfo.Entrypoint.MatchUnsafe(
+                        Image = image.Value,
+                        Command = entrypoint.MatchUnsafe(
                             x => x.Value.ToList(),
                             () => default(IList<string>)),
                         WorkingDir = "/src",
@@ -120,5 +83,5 @@ internal class KubernetesContainerRuntimeContext<RT>(k8s.Kubernetes kubernetes, 
         from createdPod in Aff((RT rt) => client.CreateAsync(pod, rt.CancellationToken).ToValue())
         from _10 in Aff((RT rt) => client.WatchAsync<V1Pod>(createdPod.Namespace(), cancellationToken: rt.CancellationToken)
             .FirstAsync(x => x.Type == WatchEventType.Modified && x.Entity.Status.Phase == "Running"))
-        select (IContainer<RT>) new KubernetesContainer<RT>(kubernetes, client, createdPod);
+        select createdPod;
 }
