@@ -68,6 +68,13 @@ internal class KubernetesContainerRuntimeContext<RT>(k8s.Kubernetes kubernetes, 
                         WorkingDir = "/src",
                         Tty = true,
                         Stdin = true,
+                        Resources = new V1ResourceRequirements
+                        {
+                            Limits = new Dictionary<string, ResourceQuantity>
+                            {
+                                {"cpu", new ResourceQuantity("50m")},
+                            },
+                        },
                         VolumeMounts =
                         [
                             new V1VolumeMount
