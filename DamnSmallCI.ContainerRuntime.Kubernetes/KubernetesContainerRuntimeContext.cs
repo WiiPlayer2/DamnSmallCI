@@ -72,7 +72,7 @@ internal class KubernetesContainerRuntimeContext<RT>(k8s.Kubernetes kubernetes, 
                         {
                             Limits = new Dictionary<string, ResourceQuantity>
                             {
-                                {"cpu", new ResourceQuantity("50m")},
+                                {"cpu", new ResourceQuantity("250m")},
                             },
                         },
                         VolumeMounts =
