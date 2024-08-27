@@ -15,8 +15,6 @@ internal class KubernetesContainerRuntimeContext<RT>(k8s.Kubernetes kubernetes, 
 
     public Aff<RT, Unit> CopyFilesFromDirectory(DirectoryInfo directory) =>
         from createdPod in CreatePod(ImageName.From("busybox"), None)
-        from _10 in Aff((RT rt) => client.WatchAsync<V1Pod>(createdPod.Namespace(), cancellationToken: rt.CancellationToken)
-            .FirstAsync(x => x.Type == WatchEventType.Modified && x.Entity.Status.Phase == "Running"))
         from _20 in use(
             SuccessAff(new MemoryStream()),
             memoryStream =>
@@ -33,7 +31,7 @@ internal class KubernetesContainerRuntimeContext<RT>(k8s.Kubernetes kubernetes, 
 
     public Aff<RT, IContainer<RT>> NewContainer(TaskContainerInfo containerInfo) =>
         from createdPod in CreatePod(containerInfo.Image, containerInfo.Entrypoint)
-        select (IContainer<RT>) new KubernetesContainer<RT>(kubernetes, client, createdPod);
+        select (IContainer<RT>) new KubernetesContainer<RT>(client, createdPod);
 
     private Aff<RT, V1Pod> CreatePod(ImageName image, Option<ContainerEntrypoint> entrypoint) =>
         from pod in SuccessEff(new V1Pod
@@ -68,13 +66,13 @@ internal class KubernetesContainerRuntimeContext<RT>(k8s.Kubernetes kubernetes, 
                         WorkingDir = "/src",
                         Tty = true,
                         Stdin = true,
-                        Resources = new V1ResourceRequirements
-                        {
-                            Limits = new Dictionary<string, ResourceQuantity>
-                            {
-                                {"cpu", new ResourceQuantity("250m")},
-                            },
-                        },
+                        // Resources = new V1ResourceRequirements
+                        // {
+                        //     Limits = new Dictionary<string, ResourceQuantity>
+                        //     {
+                        //         {"cpu", new ResourceQuantity("250m")},
+                        //     },
+                        // },
                         VolumeMounts =
                         [
                             new V1VolumeMount
