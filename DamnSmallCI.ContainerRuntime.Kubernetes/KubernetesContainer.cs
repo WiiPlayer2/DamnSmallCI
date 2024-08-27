@@ -30,7 +30,7 @@ internal class KubernetesContainer<RT>(KubernetesClient client, V1Pod pod) : ICo
 
     public Aff<RT, Unit> Run(IProgress<StepOutput> outputProgress, Environment environment, Step step) =>
         from scriptGuid in SuccessEff(Guid.NewGuid())
-        let scriptDirectory = $"/tmp/dsci/{scriptGuid}"
+        let scriptDirectory = $"/tmp2/dsci/{scriptGuid}"
         let scriptStepFile = $"{scriptDirectory}/step.sh"
         let scriptExecFile = $"{scriptDirectory}/exec.sh"
         let scriptOutFile = $"{scriptDirectory}/out"
@@ -48,8 +48,8 @@ internal class KubernetesContainer<RT>(KubernetesClient client, V1Pod pod) : ICo
                              sh -e {scriptStepFile}
                              EXIT_CODE=$?
                              mkdir -p {scriptDirectory}
-                             cp {scriptOutFile} {scriptOutFile}.bak
-                             rm {scriptOutFile}
+                             cp {scriptOutFile} {scriptOutFile}.bak || touch {scriptOutFile}.bak
+                             rm {scriptOutFile} || true
                              echo $EXIT_CODE > {scriptExitFile}
                              {scriptGuid}_eof
                              """
@@ -77,17 +77,19 @@ internal class KubernetesContainer<RT>(KubernetesClient client, V1Pod pod) : ICo
             from result in Aff(async (RT rt) => await Cli.Wrap("kubectl")
                 .WithArguments(["exec", "-i", "-n", pod.Namespace(), pod.Name(), "--", "sh", "-e"])
                 .WithStandardInputPipe(PipeSource.FromString($"""
-                                                              mkdir -p {scriptDirectory}
+                                                              #echo "checking for exit file..."
                                                               if [ -f {scriptExitFile} ]; then
+                                                                #echo "outputting backup file..."
                                                                 cat {scriptOutFile}.bak
                                                               else
+                                                                #echo "tailing output and waiting for exit..."
                                                                 ( tail -f {scriptOutFile} || true ) &
                                                                 while [ ! -f {scriptExitFile} ]; do
                                                                   sleep 1
-                                                                  mkdir -p {scriptDirectory}
                                                                 done
                                                                 pkill tail
                                                               fi
+                                                              #echo "exiting $(cat {scriptExitFile})..."
                                                               exit $(cat {scriptExitFile} || echo 255)
                                                               """))
                 .WithStandardOutputPipe(PipeTarget.ToDelegate(line => outputProgress.Report(StepOutput.From(line))))
