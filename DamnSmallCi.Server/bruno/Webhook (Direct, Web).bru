@@ -1,0 +1,22 @@
+meta {
+  name: Webhook (Direct, Web)
+  type: http
+  seq: 3
+}
+
+post {
+  url: https://ci.dark-link.info/webhook/direct?token=asdf
+  body: json
+  auth: none
+}
+
+params:query {
+  token: asdf
+}
+
+body:json {
+  {
+    "url": "https://github.com/WiiPlayer2/DamnSmallCI.git",
+    "commit": "871692f54e1f0da443193cec2de282c751415922"
+  }
+}
