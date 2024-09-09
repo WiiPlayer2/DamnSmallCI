@@ -17,7 +17,10 @@ public class WebhookUseCase<RT>(
     public Aff<RT, Unit> Execute(RepositoryResolverName resolverName, RepositoryResolverWebhookBody webhookBody, WebhookToken token) =>
         from _05 in guard(authorizedWebhookToken.Token == token, Error.New("Unauthorized"))
         from resolver in resolverProvider.Provide(resolverName)
-        from repositoryInfo in resolver.Resolve(webhookBody)
+        from repositoryContext in resolver.Resolve(webhookBody)
+        let repositoryInfo = repositoryContext.RepositoryInfo
+        let publisher = repositoryContext.CommitStatusPublisher.IfNone(NullCommitStatusPublisher<RT>.Instance)
+        from _07 in publisher.Publish(CommitStatus.Pending())
         from targetDirectory in Eff(() => new DirectoryInfo(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString())))
         from _10 in repositoryManager.Clone(repositoryInfo, targetDirectory)
         from _20 in runDispatcher.Dispatch(

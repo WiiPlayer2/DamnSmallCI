@@ -2,7 +2,8 @@ using LanguageExt.Effects.Traits;
 
 namespace DamnSmallCI.Server.Application;
 
-public class ResolverProvider<RT>(IEnumerable<IRepositoryResolver<RT>> resolvers) where RT : struct, HasCancel<RT>
+public class ResolverProvider<RT>(
+    IEnumerable<IRepositoryResolver<RT>> resolvers) where RT : struct, HasCancel<RT>
 {
     private Eff<Map<RepositoryResolverName, IRepositoryResolver<RT>>> ResolverMap { get; } =
         Eff(() => resolvers.ToDictionary(x => x.Name).ToMap())

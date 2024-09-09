@@ -9,9 +9,10 @@ internal class DirectRepositoryResolver<RT> : IRepositoryResolver<RT> where RT :
 {
     public RepositoryResolverName Name { get; } = RepositoryResolverName.From("direct");
 
-    public Aff<RT, RepositoryInfo> Resolve(RepositoryResolverWebhookBody webhookBody) =>
+    public Aff<RT, RepositoryContext<RT>> Resolve(RepositoryResolverWebhookBody webhookBody) =>
         from dto in Eff(() => webhookBody.Value.Deserialize<WebhookBodyDto>())
         from repositoryUrl in Eff(() => RepositoryUrl.From(dto.Url))
         from repositoryCommitHash in Eff(() => RepositoryCommitHash.From(dto.CommitHash))
-        select new RepositoryInfo(repositoryUrl, repositoryCommitHash);
+        let info = new RepositoryInfo(repositoryUrl, repositoryCommitHash)
+        select new RepositoryContext<RT>(info, None);
 }
