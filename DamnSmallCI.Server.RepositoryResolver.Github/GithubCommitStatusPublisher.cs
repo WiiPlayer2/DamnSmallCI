@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using System.Text.Json;
 using DamnSmallCI.Server.Application;
 using DamnSmallCI.Server.Domain;
@@ -14,7 +15,13 @@ internal class GithubCommitStatusPublisher<RT>(
 
     public Aff<RT, Unit> Publish(CommitStatus commitStatus) =>
         use(
-            new HttpClient(),
+            new HttpClient
+            {
+                DefaultRequestHeaders =
+                {
+                    Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Value),
+                },
+            },
             httpClient =>
                 from _00 in unitAff
                 let url = new Uri($"{BASE_URL}/repos/{repository}/statuses/{hash}")
@@ -28,12 +35,6 @@ internal class GithubCommitStatusPublisher<RT>(
                         _ => "success"),
                 }
                 let content = new StringContent(JsonSerializer.Serialize(dto))
-                {
-                    Headers =
-                    {
-                        {"Authorization", $"Bearer {accessToken}"},
-                    },
-                }
                 from response in Aff((RT rt) => httpClient.PostAsync(url, content, rt.CancellationToken).ToValue())
                 from _10 in Eff(fun(response.EnsureSuccessStatusCode))
                 select unit
