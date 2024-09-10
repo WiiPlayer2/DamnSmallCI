@@ -15,13 +15,13 @@ internal class GithubCommitStatusPublisher<RT>(
 
     public Aff<RT, Unit> Publish(CommitStatus commitStatus) =>
         use(
-            new HttpClient
+            Eff(() => new HttpClient
             {
                 DefaultRequestHeaders =
                 {
                     Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Value),
                 },
-            },
+            }),
             httpClient =>
                 from _00 in unitAff
                 let url = new Uri($"{BASE_URL}/repos/{repository}/statuses/{hash}")
