@@ -3,13 +3,15 @@ using System.Text.Json;
 using DamnSmallCI.Server.Application;
 using DamnSmallCI.Server.Domain;
 using LanguageExt.Effects.Traits;
+using Microsoft.Extensions.Logging;
 
 namespace DamnSmallCI.Server.RepositoryResolver.Github;
 
 internal class GithubCommitStatusPublisher<RT>(
     GithubRepository repository,
     RepositoryCommitHash hash,
-    GithubAccessToken accessToken) : IRepositoryCommitStatusPublisher<RT> where RT : struct, HasCancel<RT>
+    GithubAccessToken accessToken,
+    ILogger<GithubCommitStatusPublisher<RT>> logger) : IRepositoryCommitStatusPublisher<RT> where RT : struct, HasCancel<RT>
 {
     private const string BASE_URL = "https://api.github.com";
 
@@ -24,7 +26,7 @@ internal class GithubCommitStatusPublisher<RT>(
             }),
             httpClient =>
                 from _00 in unitAff
-                let url = new Uri($"{BASE_URL}/repos/{repository}/statuses/{hash}")
+                let url = new Uri($"{BASE_URL}/repos/{repository.Value}/statuses/{hash.Value}")
                 let dto = new CommitStatusDto
                 {
                     Context = "damn-small-ci",
@@ -34,7 +36,9 @@ internal class GithubCommitStatusPublisher<RT>(
                         _ => "pending",
                         _ => "success"),
                 }
-                let content = new StringContent(JsonSerializer.Serialize(dto))
+                let json = JsonSerializer.Serialize(dto)
+                let content = new StringContent(json)
+                from _07 in Eff(fun(() => logger.LogDebug("Publish github commit status @ {url}: {json}", url, json)))
                 from response in Aff((RT rt) => httpClient.PostAsync(url, content, rt.CancellationToken).ToValue())
                 from _10 in Eff(fun(response.EnsureSuccessStatusCode))
                 select unit

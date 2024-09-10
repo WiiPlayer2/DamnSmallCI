@@ -2,10 +2,13 @@ using System.Text.Json;
 using DamnSmallCI.Server.Application;
 using DamnSmallCI.Server.Domain;
 using LanguageExt.Effects.Traits;
+using Microsoft.Extensions.Logging;
 
 namespace DamnSmallCI.Server.RepositoryResolver.Github;
 
-internal class GithubRepositoryResolver<RT>(GithubAccessToken accessToken) : IRepositoryResolver<RT> where RT : struct, HasCancel<RT>
+internal class GithubRepositoryResolver<RT>(
+    GithubAccessToken accessToken,
+    ILogger<GithubCommitStatusPublisher<RT>> publisherLogger) : IRepositoryResolver<RT> where RT : struct, HasCancel<RT>
 {
     public RepositoryResolverName Name { get; } = RepositoryResolverName.From("github");
 
@@ -15,6 +18,6 @@ internal class GithubRepositoryResolver<RT>(GithubAccessToken accessToken) : IRe
         from repositoryCommitHash in Eff(() => RepositoryCommitHash.From(dto.After))
         let info = new RepositoryInfo(repositoryUrl, repositoryCommitHash)
         let repository = GithubRepository.From(dto.Repository.FullName)
-        let publisher = new GithubCommitStatusPublisher<RT>(repository, repositoryCommitHash, accessToken)
+        let publisher = new GithubCommitStatusPublisher<RT>(repository, repositoryCommitHash, accessToken, publisherLogger)
         select new RepositoryContext<RT>(info, publisher);
 }
