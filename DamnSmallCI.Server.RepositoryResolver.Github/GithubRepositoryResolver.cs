@@ -5,7 +5,7 @@ using LanguageExt.Effects.Traits;
 
 namespace DamnSmallCI.Server.RepositoryResolver.Github;
 
-internal class GithubRepositoryResolver<RT> : IRepositoryResolver<RT> where RT : struct, HasCancel<RT>
+internal class GithubRepositoryResolver<RT>(GithubAccessToken accessToken) : IRepositoryResolver<RT> where RT : struct, HasCancel<RT>
 {
     public RepositoryResolverName Name { get; } = RepositoryResolverName.From("github");
 
@@ -14,5 +14,7 @@ internal class GithubRepositoryResolver<RT> : IRepositoryResolver<RT> where RT :
         from repositoryUrl in Eff(() => RepositoryUrl.From(dto.Repository.CloneUrl))
         from repositoryCommitHash in Eff(() => RepositoryCommitHash.From(dto.After))
         let info = new RepositoryInfo(repositoryUrl, repositoryCommitHash)
+        let repository = GithubRepository.From(dto.Repository.FullName)
+        let publisher = new GithubCommitStatusPublisher<RT>(repository, repositoryCommitHash, accessToken)
         select new RepositoryContext<RT>(info, None);
 }

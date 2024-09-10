@@ -10,6 +10,12 @@ internal class WebhookBodyDto
     [JsonPropertyName("repository")]
     public required RepositoryDto Repository { get; set; }
 
+    public class OwnerDto
+    {
+        [JsonPropertyName("login")]
+        public required string Login { get; set; }
+    }
+
     public class RepositoryDto
     {
         [JsonPropertyName("clone_url")]
@@ -17,5 +23,8 @@ internal class WebhookBodyDto
 
         [JsonPropertyName("full_name")]
         public required string FullName { get; set; }
+
+        [JsonPropertyName("owner")]
+        public required OwnerDto Owner { get; set; }
     }
 }
