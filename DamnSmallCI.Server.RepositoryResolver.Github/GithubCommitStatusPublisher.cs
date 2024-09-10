@@ -1,4 +1,5 @@
 using System.Net.Http.Headers;
+using System.Text;
 using System.Text.Json;
 using DamnSmallCI.Server.Application;
 using DamnSmallCI.Server.Domain;
@@ -37,7 +38,7 @@ internal class GithubCommitStatusPublisher<RT>(
                         _ => "success"),
                 }
                 let json = JsonSerializer.Serialize(dto)
-                let content = new StringContent(json)
+                let content = new StringContent(json, Encoding.UTF8, "application/json")
                 from _07 in Eff(fun(() => logger.LogDebug("Publish github commit status @ {url}: {json}", url, json)))
                 from response in Aff((RT rt) => httpClient.PostAsync(url, content, rt.CancellationToken).ToValue())
                 from _10 in Eff(fun(response.EnsureSuccessStatusCode))
