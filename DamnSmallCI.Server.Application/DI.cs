@@ -11,5 +11,6 @@ public static class DI
     {
         services.AddTransient<WebhookUseCase<RT>>();
         services.AddSingleton<ResolverProvider<RT>>();
+        services.AddSingleton<TaskDispatcher<RT>>();
     }
 }
