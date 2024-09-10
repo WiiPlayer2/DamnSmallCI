@@ -9,6 +9,7 @@
     <ItemGroup>
         <ProjectReference Include="..\DamnSmallCI.Application\DamnSmallCI.Application.csproj"/>
         <ProjectReference Include="..\DamnSmallCI.Server.Application.Abstractions\DamnSmallCI.Server.Application.Abstractions.csproj"/>
+        <ProjectReference Include="..\DamnSmallCi.Utils\DamnSmallCi.Utils.csproj"/>
     </ItemGroup>
 
 </Project>
