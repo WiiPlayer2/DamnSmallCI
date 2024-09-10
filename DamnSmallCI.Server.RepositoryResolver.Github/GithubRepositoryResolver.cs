@@ -16,5 +16,5 @@ internal class GithubRepositoryResolver<RT>(GithubAccessToken accessToken) : IRe
         let info = new RepositoryInfo(repositoryUrl, repositoryCommitHash)
         let repository = GithubRepository.From(dto.Repository.FullName)
         let publisher = new GithubCommitStatusPublisher<RT>(repository, repositoryCommitHash, accessToken)
-        select new RepositoryContext<RT>(info, None);
+        select new RepositoryContext<RT>(info, publisher);
 }
