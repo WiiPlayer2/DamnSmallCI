@@ -34,7 +34,8 @@ internal class GithubCommitStatusPublisher<RT>(
                         {"Authorization", $"Bearer {accessToken}"},
                     },
                 }
-                from _10 in Aff((RT rt) => httpClient.PostAsync(url, content, rt.CancellationToken).ToValue())
+                from response in Aff((RT rt) => httpClient.PostAsync(url, content, rt.CancellationToken).ToValue())
+                from _10 in Eff(fun(response.EnsureSuccessStatusCode))
                 select unit
         );
 }
