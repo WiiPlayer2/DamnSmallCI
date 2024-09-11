@@ -16,6 +16,10 @@ internal class GithubCommitStatusPublisher<RT>(
 {
     private const string BASE_URL = "https://api.github.com";
 
+    private const string PRODUCT_NAME = "DamnSmallCI";
+
+    private const string PRODUCT_VERSION = "0.1";
+
     public Aff<RT, Unit> Publish(CommitStatus commitStatus) =>
         use(
             Eff(() => new HttpClient
@@ -23,6 +27,10 @@ internal class GithubCommitStatusPublisher<RT>(
                 DefaultRequestHeaders =
                 {
                     Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Value),
+                    UserAgent =
+                    {
+                        new ProductInfoHeaderValue(new ProductHeaderValue(PRODUCT_NAME, PRODUCT_VERSION)),
+                    },
                 },
             }),
             httpClient =>
